@@ -13,5 +13,4 @@ library(dplyr)
 library(readr)
 
 life_expectancy <- read.csv("../baseDeDatos/lifeExpectancy.csv", header = TRUE, sep = ";") 
-problems(life_expectancy)
-spec()
+

@@ -12,5 +12,3 @@ library(readr)
 
 life_expectancy <- read.csv("../baseDeDatos/lifeExpectancy.csv", header = TRUE, sep = ";") 
 view(life_expectancy)
-
-
