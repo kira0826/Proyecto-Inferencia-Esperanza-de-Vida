@@ -1,3 +1,5 @@
+## Parte de Diaz
+
 library(readxl)
 library(tidyverse)
 library(ggplot2)
@@ -11,4 +13,5 @@ library(dplyr)
 library(readr)
 
 life_expectancy <- read.csv("../baseDeDatos/lifeExpectancy.csv", header = TRUE, sep = ";") 
-view(life_expectancy)
+problems(life_expectancy)
+spec()
