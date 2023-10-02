@@ -1,16 +1,23 @@
-# Titulo
+# Análisis de la Esperanza de Vida en Diferentes Regiones del Mundo
 
 ```{r}
 library(readxl)
 library(tidyverse)
 library(ggplot2)
-library(plotly)
 library(pastecs)
 library (fdth)
 library(PASWR2)
 library(descr)
 library(lmtest)
 library(dplyr)
+library(readr)
+
+
+
+ruta_archivo <- "../baseDeDatos/lifeExpectancy.csv"
+
+life_expectancy <- subset(read_csv2(ruta_archivo), Year == 2019)
+
 ```
 
 ## Antecedentes
@@ -56,7 +63,7 @@ Se analizará la población de diferentes países agrupados en las regiones de "
 ### Variables Cuantitativas:
 
 | Variable         | Escala  | Descripción                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-|------------------------|------------------------|------------------------|
+|------------------|---------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Nombre del País  | Nominal | Nombre del país en cuestión                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | Código del País  | Nominal | Código del país en cuestión                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | Región           | Nominal | Región del mundo en la que se encuentra el país                                                                                                                                                                                                                                                                                                                                                                                                                                           |
@@ -67,7 +74,7 @@ Se analizará la población de diferentes países agrupados en las regiones de "
 ### Variables Cualitativas:
 
 | Variable                                        | Escala | Descripción                                                                                                                                                                                                                                                                                                                                                                                                  |
-|------------------------|------------------------|------------------------|
+|-------------------------------------------------|--------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Prevalencia de la Subnutrición                  | Razón  | La prevalencia de la subnutrición se refiere al porcentaje de la población cuyo consumo habitual de alimentos es insuficiente para mantener una vida normalmente activa y saludable.                                                                                                                                                                                                                         |
 | Emisiones de Dióxido de Carbono (Kilotoneladas) | Razón  | Las emisiones de dióxido de carbono provienen de la quema de combustibles fósiles y la producción de cemento, incluyendo el dióxido de carbono generado por la utilización de combustibles sólidos, líquidos y gaseosos, así como la quema de gas.                                                                                                                                                           |
 | Gasto Sanitario (% del PIB)                     | Razón  | Nivel de gasto sanitario corriente expresado en porcentaje del PIB, incluyendo los bienes y servicios sanitarios consumidos anualmente. Este indicador excluye los gastos sanitarios de capital, como edificios, maquinaria, tecnología de la información y reservas de vacunas para emergencias o brotes.                                                                                                   |
@@ -80,8 +87,187 @@ Se analizará la población de diferentes países agrupados en las regiones de "
 
 ### Exploracion de datos:
 
+#### Variables cuantitativas:
+
+```{r}
+
+```
+
+##### Prevalencia De La Subnutrición
+
+```{r}
+media_prevalencia_de_subnutricion <- life_expectancy %>%
+  group_by(Region) %>%
+  summarise(media_prevalencia_de_subnutricion = mean(`Prevelance of Undernourishment`, na.rm = TRUE))
+
+# Crear el gráfico de barras de la media de prevalencia de la subnutricion por regiones
+ggplot(media_prevalencia_de_subnutricion, aes(x = Region, y = media_prevalencia_de_subnutricion, fill = Region)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Región", y = "Media de prevalencia de la subnutricion", title = "Media de prevalencia de la subnutricion por regiones") +
+  theme_minimal()
+
+
+```
+
+##### Emisiones De Dióxido De Carbono (Kilotoneladas)
+
+```{r}
+
+media_co2_por_region <- life_expectancy %>%
+  group_by(Region) %>%
+  summarise(Media_CO2 = mean(CO2, na.rm = TRUE))
+
+# Crear el gráfico de barras de la media de CO2 por regiones
+ggplot(media_co2_por_region, aes(x = Region, y = Media_CO2, fill = Region)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Región", y = "Media de CO2", title = "Media de Emisiones de CO2 por Regiones") +
+  theme_minimal()
+
+```
+
+##### Gasto Sanitario (% del PIB)
+
+```{r}
+media_sanitario <- life_expectancy %>%
+  group_by(Region) %>%
+  summarise(media_sanitario = mean(`Health Expenditure %`, na.rm = TRUE))
+
+# Crear el gráfico de barras de la media de gasto sanitario por regiones
+ggplot(media_sanitario, aes(x = Region, y = media_sanitario, fill = Region)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Región", y = "Media de Gasto Sanitario", title = "Media de gasto sanitario (% del PIB)por regiones") +
+  theme_minimal()
+```
+
+##### Gasto en educación (% del PIB)
+
+```{r}
+media_educacion <- life_expectancy %>%
+  group_by(Region) %>%
+  summarise(media_educacion = mean(`Education Expenditure %`, na.rm = TRUE))
+
+# Crear el gráfico de barras de la media de gasto en educacion por regiones
+ggplot(media_educacion, aes(x = Region, y = media_educacion, fill = Region)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Región", y = "Media de gasto en educacion", title = "Media de gasto en educacion (% del PIB) por Regiones") +
+  theme_minimal()
+
+```
+
+##### Desempleo (% de la población activa total)
+
+```{r}
+media_desempleo <- life_expectancy %>%
+  group_by(Region) %>%
+  summarise(media_desempleo = mean(Unemployment, na.rm = TRUE))
+
+# Crear el gráfico de barras de la media de desempleo por regiones
+ggplot(media_desempleo, aes(x = Region, y = media_desempleo, fill = Region)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Región", y = "Media de desempleo", title = "Media de desempleo (% de poblacion activa) por Regiones") +
+  theme_minimal()
+
+```
+
+##### Saneamiento
+
+```{r}
+media_saneamiento <- life_expectancy %>%
+  group_by(Region) %>%
+  summarise(media_saneamiento = mean(Sanitation, na.rm = TRUE))
+
+# Crear el gráfico de barras de la media de saneamiento por regiones
+ggplot(media_saneamiento, aes(x = Region, y = media_saneamiento, fill = Region)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Región", y = "Media de saneamiento", title = "Media de % de saneamiento por Regiones") +
+  theme_minimal()
+
+```
+
+##### Esperanza De Vida
+
+```{r}
+media_life_expectancy <- life_expectancy %>%
+  group_by(Region) %>%
+  summarise(media_life_expectancy = mean(`Life Expectancy World Bank`, na.rm = TRUE))
+
+# Crear el gráfico de barras de la media de esperanza de vida por regiones
+ggplot(media_life_expectancy, aes(x = Region, y = media_life_expectancy, fill = Region)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Región", y = "Media de esperanza de vida", title = "Media de esperanza de vida por Regiones") +
+  theme_minimal()
+
+
+```
+
 #### Variables cualitativas:
 
-#### Variables cuantitativas:
+##### Region
+
+```{r}
+resumen_paises_por_region <- life_expectancy %>%
+  group_by(Region) %>%
+  summarise(Cantidad_Paises = n())
+
+# Mostrar el resumen
+ggplot(resumen_paises_por_region, aes(x = factor(Region), y = Cantidad_Paises)) +
+  geom_bar(stat = "identity", fill = "#1f78b4") +
+  labs(x = "Region", y = "Cantidad de Países", 
+       title = "Cantidad de Países por region") +
+  theme_minimal()
+```
+
+##### Grupo Ingreso
+
+```{r}
+life_expectancy$IncomeGroup <- factor(life_expectancy$IncomeGroup, levels = c("Low income", "Lower middle income", "Upper middle income", "High income"))
+
+datos_2019 <- subset(life_expectancy, Year == 2019)
+
+relacion_ingresos_expectativa_vida <- life_expectancy %>%
+  group_by(Region, IncomeGroup) %>%
+  summarise(Media_Expectativa_Vida = mean(`Life Expectancy World Bank`, na.rm = TRUE))
+
+ggplot(relacion_ingresos_expectativa_vida, aes(x = Region, y = Media_Expectativa_Vida, fill = IncomeGroup)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_manual(values = c("#33a02c","#1f78b4" , "#e31a1c", "#ff7f00"), name = "Income Group") +
+  labs(x = "Región", y = "Expectativa de Vida Media", title = "Relación entre el Ingreso y la expectativa de vida por regiones en el año 2019") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+##### Corrupción
+
+```{r}
+cantidad_paises_por_corrupcion <- datos_2019 %>%
+  group_by(Corruption) %>%
+  summarise(Cantidad_Paises = n())
+
+# Mostrar el resultado
+ggplot(cantidad_paises_por_corrupcion, aes(x = factor(Corruption), y = Cantidad_Paises)) +
+  geom_bar(stat = "identity", fill = "#1f78b4") +
+  labs(x = "Nivel de Corrupción", y = "Cantidad de Países", 
+       title = "Cantidad de Países por Nivel de Corrupción en el Año 2019") +
+  theme_minimal()
+```
+
+### Estimacion muestral:
+
+```{r}
+life_expectancy$Year <- as.factor(life_expectancy$Year)
+life_expectancy$Corruption <- as.factor(life_expectancy$Corruption)
+
+regions <- c("East Asia & Pacific", "Europe & Central Asia", "Middle East & North Africa", "Sub-Saharan Africa")
+
+df_filtrado <- life_expectancy %>%
+  filter(Region %in% regions)
+
+medias <- df_filtrado %>%
+  group_by(Region) %>%
+  summarise(across(where(is.numeric), mean, na.rm = TRUE))
+
+View(medias)
+
+```
 
 ## Conclusiones
