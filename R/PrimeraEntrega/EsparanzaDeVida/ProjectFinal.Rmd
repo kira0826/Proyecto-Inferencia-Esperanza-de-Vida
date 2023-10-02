@@ -451,25 +451,7 @@ Estos resultados destacan una variación significativa en los niveles de corrupc
 ### Estimacion muestral:
 
 ```{r}
-life_expectancy$Year <- as.factor(life_expectancy$Year)
-life_expectancy$Corruption <- as.factor(life_expectancy$Corruption)
 
-regions <- c("East Asia & Pacific", "Europe & Central Asia", "Middle East & North Africa", "Sub-Saharan Africa")
-
-
-# Calcular la media de la variable "Life Expectancy World Bank"
-mean_life_expectancy <- mean(life_expectancy$`Life Expectancy World Bank`, na.rm = TRUE)
-print(paste("Media de la esperanza de vida: ", round(mean_life_expectancy, 2)))
-
-# Definir una función para calcular la media y su error estándar
-mean_fun <- function(data, indices) {
-  d <- data[indices] # permite el muestreo con reemplazo
-  return(mean(d))
-}
-
-# Usar la función boot() para calcular el intervalo de confianza del 95%
-results <- boot(data$`Life Expectancy World Bank`, mean_fun, R=1000)
-boot.ci(results, type="bca")
 ```
 
 ## Proporciones
