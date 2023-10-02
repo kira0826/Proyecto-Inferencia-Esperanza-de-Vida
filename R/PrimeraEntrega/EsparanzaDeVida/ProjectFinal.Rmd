@@ -448,11 +448,39 @@ Estos resultados destacan una variación significativa en los niveles de corrupc
 
 
 
-### Estimacion muestral:
+### Estimacion muestral y estimacion proporcion:
 
 ```{r}
 
+media_life_expectancy <- media_desviacion_east_asia_pacific$Media_Life_Expectancy
+desviacion_estandar_life_expectancy <- media_desviacion_east_asia_pacific$Desviacion_Estandar_Life_Expectancy
+
+# Tamaño de la muestra (n)
+n <- nrow(east_asia_pacific_data)
+
+# Valor crítico Z para un nivel de confianza del 98% (utilizando una distribución normal estándar)
+valor_critico_Z <- qnorm(0.99)
+
+# Calcular el error estándar
+error_estandar <- desviacion_estandar_life_expectancy / sqrt(n)
+
+# Calcular el margen de error
+margen_error <- valor_critico_Z * error_estandar
+
+# Calcular el intervalo de confianza
+intervalo_confianza <- c(media_life_expectancy - margen_error, media_life_expectancy + margen_error)
+
+# Mostrar el intervalo de confianza
+intervalo_confianza
+
+
+
 ```
+intervalo de confianza [69.26309, 74.96469] para la media de la esperanza de vida en la región "East Asia & Pacific" con un nivel de confianza del 98% nos proporciona una estimación precisa de dónde podría encontrarse la verdadera media de esta variable en la región. Con un 98% de confianza, podemos afirmar que la esperanza de vida en "East Asia & Pacific" es muy probable que caiga dentro de este rango, lo que significa que el valor medio estimado es de aproximadamente 69.26309 años, con un margen de error que se extiende hasta 74.96469 años. En resumen, este intervalo nos brinda una medida de la variabilidad de la esperanza de vida en la región y nos permite tener un alto grado de seguridad en la ubicación de su media real.
+
+
+
+
 
 
 
