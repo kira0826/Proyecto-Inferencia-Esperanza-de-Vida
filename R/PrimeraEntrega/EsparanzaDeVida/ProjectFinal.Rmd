@@ -1,0 +1,87 @@
+# Titulo
+
+```{r}
+library(readxl)
+library(tidyverse)
+library(ggplot2)
+library(plotly)
+library(pastecs)
+library (fdth)
+library(PASWR2)
+library(descr)
+library(lmtest)
+library(dplyr)
+```
+
+## Antecedentes
+
+La esperanza de vida al nacer es un indicador que refleja la cantidad de años que viviría un recién nacido si las tasas de mortalidad vigentes en el momento de su nacimiento se mantuvieran constantes a lo largo de toda su vida. Este indicador es esencial para evaluar la salud de una población.
+
+## Planteamiento del Problema
+
+Desde el inicio de la industrialización en el siglo XX, la esperanza de vida ha experimentado un notable aumento, y la cifra promedio a nivel mundial se ha más que duplicado, alcanzando los 70 años. Sin embargo, persisten marcadas desigualdades en la esperanza de vida entre distintos países. El estudio realizado por Acemoglu y Johnson ha demostrado la relación entre el incremento de la esperanza de vida y el mejoramiento del crecimiento económico, medido a través del Producto Interno Bruto (PIB) per cápita, controlando los efectos fijos por país. El cuadro que se presenta a continuación ilustra cómo varía la esperanza de vida entre países con ingresos altos y bajos.
+
+## Objetivos
+
+### Objetivo General:
+
+Llevar a cabo un análisis exhaustivo con el propósito de determinar de qué manera la distribución de la riqueza en un país, a través de inversiones en áreas como salud, educación, gestión ambiental y factores socioeconómicos, influye en la esperanza de vida promedio.
+
+### Objetivos Específicos:
+
+1.  Investigar la correlación entre los niveles de ingresos según las regiones y la expectativa de vida en los países.
+
+2.  Evaluar la relación entre el gasto en salud como porcentaje del Producto Interno Bruto (PIB) y los niveles de ingresos de un país.
+
+3.  Analizar cómo el gasto en educación, expresado como porcentaje del PIB, se relaciona con los niveles de ingresos de un país.
+
+4.  Identificar los factores socioeconómicos que ejercen un impacto significativo en la esperanza de vida promedio de un país.
+
+5.  Explorar las conexiones entre las políticas de gestión ambiental, las emisiones de dióxido de carbono y su influencia en la esperanza de vida y los niveles de ingresos de un país.
+
+## Recopilación de Datos
+
+Los datos utilizados en este estudio se obtuvieron de la base de datos en Kaggle titulada "Life expectancy & Socio-Economic (world bank)."
+
+## Población de Estudio
+
+Se analizará la población de diferentes países agrupados en las regiones de "Asia del Este & Pacífico," "Europa & Asia Central," "Medio Oriente & África del Norte," y el "Sub-Sahara Africano."
+
+## Método de Muestreo
+
+(No se proporciona información sobre el método de muestreo en el texto original. Sería conveniente incluir esta información si es relevante).
+
+## Variables de Estudio
+
+### Variables Cuantitativas:
+
+| Variable         | Escala  | Descripción                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+|------------------------|------------------------|------------------------|
+| Nombre del País  | Nominal | Nombre del país en cuestión                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| Código del País  | Nominal | Código del país en cuestión                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| Región           | Nominal | Región del mundo en la que se encuentra el país                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Grupo de Ingreso | Ordinal | Nivel de ingresos del país (escala: "High income," "Upper middle income," "Lower middle income," "Low income")                                                                                                                                                                                                                                                                                                                                                                            |
+| Año              | Ordinal | Año del registro, desde 2000 hasta 2019                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Corrupción       | Ordinal | CPIA (Country Policy and Institutional Assessment) es un sistema de evaluación utilizado por el Banco Mundial para medir y calificar las políticas y las instituciones de los países en desarrollo. El objetivo del CPIA es proporcionar una evaluación objetiva y comparable de las políticas y las instituciones gubernamentales en áreas clave que afectan al desarrollo económico y social. El rating varía en una escala del 1 al 6, donde 6 implica un buen desempeño del gobierno. |
+
+### Variables Cualitativas:
+
+| Variable                                        | Escala | Descripción                                                                                                                                                                                                                                                                                                                                                                                                  |
+|------------------------|------------------------|------------------------|
+| Prevalencia de la Subnutrición                  | Razón  | La prevalencia de la subnutrición se refiere al porcentaje de la población cuyo consumo habitual de alimentos es insuficiente para mantener una vida normalmente activa y saludable.                                                                                                                                                                                                                         |
+| Emisiones de Dióxido de Carbono (Kilotoneladas) | Razón  | Las emisiones de dióxido de carbono provienen de la quema de combustibles fósiles y la producción de cemento, incluyendo el dióxido de carbono generado por la utilización de combustibles sólidos, líquidos y gaseosos, así como la quema de gas.                                                                                                                                                           |
+| Gasto Sanitario (% del PIB)                     | Razón  | Nivel de gasto sanitario corriente expresado en porcentaje del PIB, incluyendo los bienes y servicios sanitarios consumidos anualmente. Este indicador excluye los gastos sanitarios de capital, como edificios, maquinaria, tecnología de la información y reservas de vacunas para emergencias o brotes.                                                                                                   |
+| Gasto en Educación (% del PIB)                  | Razón  | El gasto de las administraciones públicas en educación, incluyendo gastos corrientes, de capital y transferencias, se expresa como porcentaje del PIB, abarcando los gastos financiados por transferencias de fuentes internacionales al gobierno.                                                                                                                                                           |
+| Desempleo (% de la población activa total)      | Razón  | El desempleo se refiere al porcentaje de la población activa que está desempleada, disponible y en búsqueda de empleo.                                                                                                                                                                                                                                                                                       |
+| Saneamiento                                     | Razón  | Porcentaje de personas que utilizan instalaciones de saneamiento mejoradas que no comparten con otros hogares y donde los excrementos se eliminan de manera segura in situ o se transportan y tratan fuera del lugar. Las instalaciones mejoradas incluyen sistemas de alcantarillado por tuberías, fosas sépticas, letrinas de pozo mejoradas ventiladas, inodoros compuestos o letrinas de pozo con losas. |
+| Esperanza de Vida                               | Razón  | Este indicador se refiere a la cantidad de años que viviría un recién nacido si las tasas de mortalidad actuales al momento de su nacimiento se mantuvieran constantes a lo largo de su vida. En otras palabras, proporciona una perspectiva general de las tasas de mortalidad de la población en un período determinado.                                                                                   |
+
+## Analisis
+
+### Exploracion de datos:
+
+#### Variables cualitativas:
+
+#### Variables cuantitativas:
+
+## Conclusiones
