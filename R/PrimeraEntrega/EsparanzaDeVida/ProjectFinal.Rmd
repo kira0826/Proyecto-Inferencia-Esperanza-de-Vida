@@ -454,6 +454,8 @@ Estos resultados destacan una variación significativa en los niveles de corrupc
 
 ```
 
+
+
 ## Proporciones
 ### Proporcion de regiones con bajos ingresos
 ```{r}
@@ -491,6 +493,8 @@ intervalo.p
 
 
 ```
+el código calcula la proporción de países de "ingresos bajos" en un conjunto de datos y proporciona un intervalo de confianza del 95% para esta proporción. La proporción estimada es aproximadamente 0.1322, y el intervalo de confianza está entre 0.0819 y 0.1825. Esto significa que con un 95% de confianza, se estima que la proporción de países de "ingresos bajos" está dentro de este intervalo.
+
 
 
 ### Proporcion de paises en la categoría de altos ingresos
@@ -528,6 +532,8 @@ intervalo.p <- data.frame(n,p,error.est.p,error.p,lim.inf,lim.sup)
 intervalo.p 
 
 ```
+el código calcula la proporción de países de "altos ingresos" en un conjunto de datos, junto con un intervalo de confianza del 95% para esta proporción. La proporción estimada es aproximadamente 0.3276, y el intervalo de confianza está entre 0.2578 y 0.3973. Esto significa que con un 95% de confianza, se estima que la proporción de países de "altos ingresos" está dentro de este intervalo.
+
 
 
 
