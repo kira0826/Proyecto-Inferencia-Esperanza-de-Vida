@@ -91,7 +91,7 @@ Se analizará la población de diferentes países agrupados en las regiones de "
 
 ```{r}
 summary_table <- data.frame(
-  Variable = c("Prevalencia de Subnutrición", "Emisiones de CO2", "Gasto Sanitario (% del PIB)", 
+  Variable = c("Prevalencia de Subnutricion", "Emisiones de CO2", "Gasto Sanitario (% del PIB)", 
                "Gasto en Educación (% del PIB)", "Desempleo (% de la población activa total)", "Saneamiento", "Esperanza de Vida"),
   Media = c(mean(life_expectancy$`Prevelance of Undernourishment`, na.rm = TRUE),
             mean(life_expectancy$CO2, na.rm = TRUE),
@@ -146,7 +146,7 @@ summary_table <- data.frame(
 summary_table <- summary_table[1:(nrow(summary_table) - 7), ]
 
 # Mostrar la tabla
-View(summary_table)
+print(summary_table)
 ```
 
 ##### Prevalencia De La Subnutrición
@@ -162,7 +162,7 @@ media_prevalencia_de_subnutricion <- life_expectancy %>%
 ggplot(media_prevalencia_de_subnutricion, aes(x = Region, y = media_prevalencia_de_subnutricion, fill = Region)) +
   geom_bar(stat = "identity") +
   geom_text(aes(label = round(media_prevalencia_de_subnutricion, 2)), vjust = -0.5, size = 3) +  
-  labs(x = "Región", y = "Media de prevalencia de la subnutricion", title = "Media de prevalencia de la subnutricion por regiones") +
+  labs(x = "Region", y = "Media de prevalencia de la subnutricion", title = "Media de prevalencia de la subnutricion por regiones") +
   theme_minimal()
 
 
@@ -186,7 +186,7 @@ media_co2_por_region <- life_expectancy %>%
 ggplot(media_co2_por_region, aes(x = Region, y = Media_CO2, fill = Region)) +
   geom_bar(stat = "identity") +
   geom_text(aes(label = round(Media_CO2, 2)), vjust = -0.5, size = 3) +
-  labs(x = "Región", y = "Media de CO2", title = "Media de Emisiones de CO2 por Regiones") +
+  labs(x = "Region", y = "Media de CO2", title = "Media de Emisiones de CO2 por Regiones") +
   theme_minimal()
 
 
@@ -219,7 +219,7 @@ media_sanitario <- life_expectancy %>%
 ggplot(media_sanitario, aes(x = Region, y = media_sanitario, fill = Region)) +
   geom_bar(stat = "identity") +
   geom_text(aes(label = round(media_sanitario, 2)), vjust = -0.5, size = 3) +  
-  labs(x = "Región", y = "Media de Gasto Sanitario", title = "Media de gasto sanitario (% del PIB)por regiones") +
+  labs(x = "Region", y = "Media de Gasto Sanitario", title = "Media de gasto sanitario (% del PIB)por regiones") +
   theme_minimal()
 
 ```
@@ -576,8 +576,11 @@ H1:μ<65
 ```{r}
 grupos <- split(life_expectancy, life_expectancy$IncomeGroup)
 grupo_low_income <- grupos[["Low income"]]
-t.test(grupo_low_income$Life.Expectancy.World.Bank, mu=65,  alternative = "less")
+t.test(grupo_low_income$"Life Expectancy World Bank", mu=65,  alternative = "less")
 qt (p = 0.95, df = 22, lower.tail = FALSE)
+```
+```{r}
+
 ```
 
 Si buscamos el valor crítico de t con un α de 0,05 tenemos que tα=-1.717
@@ -590,7 +593,7 @@ H0:μ$\le$70
 H1:μ>70
 ```{r}
 grupo_high_income <- grupos[["High income"]]
-t.test(grupo_high_income$Life.Expectancy.World.Bank, mu=70,  alternative = "greater")
+t.test(grupo_high_income$"Life Expectancy World Bank", mu=70,  alternative = "greater")
 qt (p = 0.95, df = 56, lower.tail = TRUE)
 curve_area(mean = 0, sd = 1, lb = qt (p = 0.95, df = 56, lower.tail = TRUE), lwd = 2, acolor = rgb(0, 0, 1, alpha = 0.5), z=12.77)
 ```
