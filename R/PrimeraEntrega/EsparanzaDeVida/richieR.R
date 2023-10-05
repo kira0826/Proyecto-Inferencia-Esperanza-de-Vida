@@ -89,3 +89,39 @@ curve_area(mean = 0, sd = 1, lb = qnorm(0.95), lwd = 2, acolor = rgb(0, 0, 1, al
 ####Al comparar con el valor p vemos se debe rechazar H0, ya que p es menor al valor de alpha. 
 ####Al rechazar la hipótesis nula concluimos que más del 50% de de los paises tienen un grado de corrupción 3.
 
+
+
+
+Ingresos <- ifelse(life_expectancy$IncomeGroup== "High income",1,0)
+
+str(Ingresos)
+
+prop.table(table(Ingresos))
+
+Ingresos <- na.omit(Ingresos)
+
+p <- mean(Ingresos)
+
+p
+
+#Identificar el n
+
+n <- length(Ingresos)
+n
+
+#error estandar
+
+error.est.p <- sqrt((p*(1-p))/n)
+
+#cálculo del error
+error.p <- 1.96*error.est.p
+
+#limites
+lim.inf <- p-error.p
+lim.sup <- p+error.p
+
+intervalo.p <- data.frame(n,p,error.est.p,error.p,lim.inf,lim.sup)
+
+intervalo.p 
+
+#Entre el 26% y el 40% de países están ubicados en la categoria de altos ingresos
