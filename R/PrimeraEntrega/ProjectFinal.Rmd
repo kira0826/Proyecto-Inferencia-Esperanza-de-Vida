@@ -5,6 +5,7 @@
 # Análisis de la Esperanza de Vida en Diferentes Regiones del Mundo
 
 ```{r}
+
 library(readxl)
 library(tidyverse)
 library(ggplot2)
@@ -17,8 +18,7 @@ library(dplyr)
 library(readr)
 
 
-
-ruta_archivo <- "../baseDeDatos/lifeExpectancy.csv"
+ruta_archivo <- "./baseDeDatos/lifeExpectancy.csv"
 
 life_expectancy <- subset(read_csv2(ruta_archivo), Year == 2019)
 
