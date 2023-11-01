@@ -16,6 +16,9 @@ library(descr)
 library(lmtest)
 library(dplyr)
 library(readr)
+library(knitr)
+library(htmlTable)
+
 
 
 ruta_archivo <- "./baseDeDatos/lifeExpectancy.csv"
@@ -32,7 +35,7 @@ Ricardo Urbina
 
 Juan Sebastian Diaz
 
-Kevin Nieto
+Kevin Steven Nieto Curaca
 
 Valentina Rubio
 
@@ -195,8 +198,7 @@ generar_summary_table <- function(df) {
   summary_table <- do.call(rbind, resumen_por_columna)
   return(summary_table)
 }
-+
-  
+
 ```
 
 ##### Base de datos original:
@@ -348,19 +350,24 @@ eda(df$`Life Expectancy World Bank`)
 
 ##### Tabla cruzada de Grupo de ingreso Vs Corrupción:
 
-Cuando se analiza la siguiente tabla cruzada que establece la relación entre el grupo de ingreso vs la corrupción, se observa que a medida que el grupo de ingreso es mejor, es decir de "upper middle income" en adelante, la frecuencia de corrupción menor a "3" en el ranking tiende a disminuir.
+Cuando se analiza la siguiente tabla cruzada, que establece la relación entre el grupo de ingreso vs la corrupción, se observa que a medida que el grupo de ingreso es mejor, es decir de "upper middle income" en adelante, la frecuencia de corrupción menor a "3" en el ranking tiende a disminuir. Cabe recalcar que la primera fila de proporciones  corresponde a las proporciones a nivel de la fila, la segunda fila corresponde a las proporciones a nivel de columna y la tercera corresponde a las proporciones respecto al total.
 
 ```{r}
 
 tablaCruzada <- CrossTable(life_expectancy$IncomeGroup, life_expectancy$Corruption, prop.r = TRUE, prop.c = TRUE, prop.chisq = FALSE)
 
+tablaCruzadaFormato <-xtabs(~life_expectancy$IncomeGroup +life_expectancy$Corruption,data = df )
+
+
 print(tablaCruzada)
+
+
 
 ```
 
 ##### Tabla cruzada de Región Vs Ingreso:
 
-De la relación entre las tablas se puede resaltar que los países con "Low income" están casi en su totalidad en la región de Sub Saharan Africa, además de que la región del norte de américa está dominda por el grupo de high income, sin embargo, esto se debe a la poca representación de paises de la zona, solo tres países en dicho lugar.Además,la mayor representación de los países de ingresos altos son de la zonade Europa y Asia central.
+De la relación entre las tablas se puede resaltar que los países con "Low income" están casi en su totalidad en la región de Sub Saharan Africa, además de que la región del norte de américa está dominda por el grupo de high income, sin embargo, esto se debe a la poca representación de paises de la zona, solo tres países en dicho lugar.Además,la mayor representación de los países de ingresos altos son de la zonade Europa y Asia central.Cabe recalcar que la primera fila de proporciones  corresponde a las proporciones a nivel de la fila, la segunda fila corresponde a las proporciones a nivel de columna y la tercera corresponde a las proporciones respecto al total.
 
 ```{r}
 
@@ -656,3 +663,86 @@ curve_area(mean = 0, sd = 1, lb = qnorm(0.95), lwd = 2, acolor = rgb(0, 0, 1, al
 ```
 
 Al comparar con el valor p vemos se debe rechazar H0, ya que p es menor al valor de alpha. Al rechazar la hipótesis nula concluimos que más del 50% de de los paises tienen un grado de corrupción 3.
+
+
+# Segunda Iteración
+
+## Anova 
+
+```{r}
+# Suponiendo que tienes un data frame llamado 'data' con las columnas 'EsperanzaVida' y 'Region'
+# Calcula la media de la esperanza de vida por región utilizando aggregate
+
+result <- aggregate(life_expectancy$`Life Expectancy World Bank`, by = list(life_expectancy$Region), FUN = mean)
+
+# Renombra las columnas para mayor claridad
+colnames(result) <- c("Region", "Media_EsperanzaVida")
+
+# Muestra el resultado
+
+print(result)
+
+
+# Proceso de ANOVA
+
+
+
+
+filtradoDeZonas <- life_expectancy %>%
+  filter(life_expectancy$Region %in% c("Middle East & North Africa", "East Asia & Pacific", "Europe & Central Asia"))
+
+modelo_anova <- aov(life_expectancy$`Life Expectancy World Bank` ~ life_expectancy$Region, data = filtradoDeZonas)
+
+resumen_anova <- summary(modelo_anova)
+
+print(resumen_anova)
+
+
+
+
+
+# Prueba para conocer las diferencias: 
+
+inferenciaDeDiferencia <-function(data, v1,v2, cme){
+  
+  x1 <- data %>%
+  filter(data$Region == v1) %>%
+  summarize(Media_EsperanzaVida = mean(`Life Expectancy World Bank`))
+  
+
+  n1 <- data %>%
+  filter(Region == v1) %>%
+  count()
+  
+  x2 <- data %>%
+  filter(data$Region == v2) %>%
+  summarize(Media_EsperanzaVida = mean(`Life Expectancy World Bank`))
+
+
+  n2 <- data %>%
+  filter(Region == v2) %>%
+  count()
+  
+  
+  intervalo_inf <- (x1 - x2) -  qt(1- 0.025, nrow(data)-3 ) * sqrt(cme*(1/n1 + 1/n2))
+  intervalo_sup <- (x1 - x2) +  qt(1- 0.025, nrow(data)-3 )* sqrt(cme*(1/n1 + 1/n2))
+  
+  
+  frase <- paste(v1," VS ", v2,": ", "[", intervalo_inf, ";", intervalo_sup, "]")
+  print(frase)
+  
+
+  return(list(intervalo_inf,intervalo_sup)) 
+  
+}
+
+v1 <- inferenciaDeDiferencia(life_expectancy,"Middle East & North Africa","East Asia & Pacific",25)
+
+v2 <- inferenciaDeDiferencia(life_expectancy,"Middle East & North Africa","Europe & Central Asia",25)
+
+v3 <- inferenciaDeDiferencia(life_expectancy,"Europe & Central Asia","East Asia & Pacific",25)
+
+
+
+
+```
