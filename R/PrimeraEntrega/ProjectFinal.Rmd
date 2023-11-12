@@ -348,33 +348,9 @@ eda(df$`Life Expectancy World Bank`)
 
 ### Variables cualitativas:
 
-##### Tabla cruzada de Grupo de ingreso Vs Corrupción:
-
-Cuando se analiza la siguiente tabla cruzada, que establece la relación entre el grupo de ingreso vs la corrupción, se observa que a medida que el grupo de ingreso es mejor, es decir de "upper middle income" en adelante, la frecuencia de corrupción menor a "3" en el ranking tiende a disminuir. Cabe recalcar que la primera fila de proporciones  corresponde a las proporciones a nivel de la fila, la segunda fila corresponde a las proporciones a nivel de columna y la tercera corresponde a las proporciones respecto al total.
-
-```{r}
-
-tablaCruzada <- CrossTable(life_expectancy$IncomeGroup, life_expectancy$Corruption, prop.r = TRUE, prop.c = TRUE, prop.chisq = FALSE)
-
-tablaCruzadaFormato <-xtabs(~life_expectancy$IncomeGroup +life_expectancy$Corruption,data = df )
-
-
-print(tablaCruzada)
 
 
 
-```
-
-##### Tabla cruzada de Región Vs Ingreso:
-
-De la relación entre las tablas se puede resaltar que los países con "Low income" están casi en su totalidad en la región de Sub Saharan Africa, además de que la región del norte de américa está dominda por el grupo de high income, sin embargo, esto se debe a la poca representación de paises de la zona, solo tres países en dicho lugar.Además,la mayor representación de los países de ingresos altos son de la zonade Europa y Asia central.Cabe recalcar que la primera fila de proporciones  corresponde a las proporciones a nivel de la fila, la segunda fila corresponde a las proporciones a nivel de columna y la tercera corresponde a las proporciones respecto al total.
-
-```{r}
-
-tablaCruzada <- CrossTable(life_expectancy$Region, life_expectancy$IncomeGroup, prop.r = TRUE, prop.c = TRUE, prop.chisq = FALSE)
-
-print(tablaCruzada)
-```
 
 ##### Region
 
@@ -667,83 +643,90 @@ Al comparar con el valor p vemos se debe rechazar H0, ya que p es menor al valor
 
 # Segunda Iteración
 
-## Anova 
+##### Tabla cruzada de Región Vs Ingreso:
+
+De la relación entre las tablas se puede resaltar que los países con "Low income" están casi en su totalidad en la región de Sub Saharan Africa, además de que la región del norte de américa está dominda por el grupo de high income, sin embargo, esto se debe a la poca representación de paises de la zona, solo tres países en dicho lugar.Además,la mayor representación de los países de ingresos altos son de la zonade Europa y Asia central.Cabe recalcar que la primera fila de proporciones  corresponde a las proporciones a nivel de la fila, la segunda fila corresponde a las proporciones a nivel de columna y la tercera corresponde a las proporciones respecto al total.
 
 ```{r}
-# Suponiendo que tienes un data frame llamado 'data' con las columnas 'EsperanzaVida' y 'Region'
-# Calcula la media de la esperanza de vida por región utilizando aggregate
 
+tablaCruzada <- CrossTable(life_expectancy$Region, life_expectancy$IncomeGroup, prop.r = TRUE, prop.c = TRUE, prop.chisq = FALSE)
+
+print(tablaCruzada)
+```
+
+##### Tabla cruzada de Grupo de ingreso Vs Corrupción:
+
+Cuando se analiza la siguiente tabla cruzada, que establece la relación entre el grupo de ingreso vs la corrupción, se observa que a medida que el grupo de ingreso es mejor, es decir de "upper middle income" en adelante, la frecuencia de corrupción menor a "3" en el ranking tiende a disminuir. Cabe recalcar que la primera fila de proporciones  corresponde a las proporciones a nivel de la fila, la segunda fila corresponde a las proporciones a nivel de columna y la tercera corresponde a las proporciones respecto al total.
+
+```{r}
+
+tablaCruzada <- CrossTable(life_expectancy$IncomeGroup, life_expectancy$Corruption, prop.r = TRUE, prop.c = TRUE, prop.chisq = FALSE)
+
+tablaCruzadaFormato <-xtabs(~life_expectancy$IncomeGroup +life_expectancy$Corruption,data = df )
+
+
+print(tablaCruzada)
+
+
+
+```
+
+
+## Anova 
+
+Dado que la variable principal de estudio en nuestro proyecto es la esperanza de vida, estamos llevando a cabo un análisis de las medias de esperanza de vida por región. Este análisis tiene como objetivo determinar similitudes o diferencias significativas entre las medias de esperanza de vida en distintas regiones, teniendo en cuenta factores culturales y económicos específicos de cada región. A continuación, se presentan las medias de esperanza de vida obtenidas:
+
+
+```{r}
 result <- aggregate(life_expectancy$`Life Expectancy World Bank`, by = list(life_expectancy$Region), FUN = mean)
 
-# Renombra las columnas para mayor claridad
-colnames(result) <- c("Region", "Media_EsperanzaVida")
+colnames(result) <- c("Region", "Media_EsperanzaVidas")
 
-# Muestra el resultado
 
 print(result)
+```
+
+A partir del resultado anterior, se observa una similitud entre las regiones "Middle East & North Africa", "East Asia & Pacific" y "Europe & Central Asia". Por lo tanto, el análisis de ANOVA se lleva a cabo específicamente en estas regiones con el objetivo de determinar si las medias de esperanza de vida son iguales o si al menos una difiere. En este contexto, se plantean las siguientes hipótesis:
+
+Sea $\mu_i$ las media de una región se plantea, 
 
 
+$$ H_0 = \mu_1 = \mu_2= \mu_3 \\
+
+ H_1 = \text{Al menos un par de medias difieren.}$$
+Se procede a hacer Anova: 
+
+
+```{r}
 # Proceso de ANOVA
-
-
-
 
 filtradoDeZonas <- life_expectancy %>%
   filter(life_expectancy$Region %in% c("Middle East & North Africa", "East Asia & Pacific", "Europe & Central Asia"))
 
-modelo_anova <- aov(life_expectancy$`Life Expectancy World Bank` ~ life_expectancy$Region, data = filtradoDeZonas)
+print(filtradoDeZonas)
+
+modelo_anova <- aov(lm(`Life Expectancy World Bank` ~ Region, data = filtradoDeZonas))
 
 resumen_anova <- summary(modelo_anova)
 
 print(resumen_anova)
 
 
+```
+
+Con base en los resultados obtenidos, se rechaza la hipótesis nula $H_0$. Por consiguiente, se lleva a cabo un análisis post-ANOVA con el propósito de comprender e identificar la naturaleza de esta diferencia.
+
+```{r}
+resumenTukey <- TukeyHSD(modelo_anova)
 
 
+postAnova <- summary(resumenTukey)
 
-# Prueba para conocer las diferencias: 
-
-inferenciaDeDiferencia <-function(data, v1,v2, cme){
-  
-  x1 <- data %>%
-  filter(data$Region == v1) %>%
-  summarize(Media_EsperanzaVida = mean(`Life Expectancy World Bank`))
-  
-
-  n1 <- data %>%
-  filter(Region == v1) %>%
-  count()
-  
-  x2 <- data %>%
-  filter(data$Region == v2) %>%
-  summarize(Media_EsperanzaVida = mean(`Life Expectancy World Bank`))
+#postAnova_formateado <- kable(as.data.frame(postAnova))
 
 
-  n2 <- data %>%
-  filter(Region == v2) %>%
-  count()
-  
-  ## Usar tuki
-  
-  intervalo_inf <- (x1 - x2) -  qt(1- 0.025, nrow(data)-3 ) * sqrt(cme*(1/n1 + 1/n2))
-  intervalo_sup <- (x1 - x2) +  qt(1- 0.025, nrow(data)-3 )* sqrt(cme*(1/n1 + 1/n2))
-  
-  
-  frase <- paste(v1," VS ", v2,": ", "[", intervalo_inf, ";", intervalo_sup, "]")
-  print(frase)
-  
-
-  return(list(intervalo_inf,intervalo_sup)) 
-  
-}
-
-v1 <- inferenciaDeDiferencia(life_expectancy,"Middle East & North Africa","East Asia & Pacific",25)
-
-v2 <- inferenciaDeDiferencia(life_expectancy,"Middle East & North Africa","Europe & Central Asia",25)
-
-v3 <- inferenciaDeDiferencia(life_expectancy,"Europe & Central Asia","East Asia & Pacific",25)
-
-
-
+print(as.data.frame(resumenTukey$Region))
 
 ```
+
+Dado el post-anova, podemos asegurar que existe una diferencia significativa de las medias entre 'Europe & Central Asia' y 'East Asia & Pacific',  y entre 'Middle East & North Africa'  y 'East Asia & Pacific'.
