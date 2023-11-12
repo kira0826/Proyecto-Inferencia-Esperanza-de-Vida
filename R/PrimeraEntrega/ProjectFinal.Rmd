@@ -723,6 +723,7 @@ inferenciaDeDiferencia <-function(data, v1,v2, cme){
   filter(Region == v2) %>%
   count()
   
+  ## Usar tuki
   
   intervalo_inf <- (x1 - x2) -  qt(1- 0.025, nrow(data)-3 ) * sqrt(cme*(1/n1 + 1/n2))
   intervalo_sup <- (x1 - x2) +  qt(1- 0.025, nrow(data)-3 )* sqrt(cme*(1/n1 + 1/n2))
