@@ -5,12 +5,8 @@
 # Análisis de la Esperanza de Vida en Diferentes Regiones del Mundo
 
 ```{r}
-
-library(readxl)
-library(tidyverse)
 library(ggplot2)
 library(pastecs)
-library (fdth)
 library(PASWR2)
 library(descr)
 library(lmtest)
@@ -18,9 +14,11 @@ library(dplyr)
 library(readr)
 
 
+
 ruta_archivo <- "./baseDeDatos/lifeExpectancy.csv"
 
 life_expectancy <- subset(read_csv2(ruta_archivo), Year == 2019)
+
 
 ```
 
@@ -75,11 +73,10 @@ Se analizará la población de diferentes países agrupados en las regiones de "
 Utilizamos un método de muestreo aleatorio por regiones en el estudio "Life expectancy & Socio-Economic (world bank)" al considerar todos los registros del año 2019 proporcionados por el Banco Mundial. Esto nos permite obtener una representación equitativa y precisa de diferentes áreas geográficas
 
 ## Variables de Estudio
-
 ### Variables Cuantitativas:
 
 | Variable         | Escala  | Descripción                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-|----------------|----------------|----------------------------------------|
+|---------------|---------------|-------------------------------------------|
 | Nombre del País  | Nominal | Nombre del país en cuestión                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | Código del País  | Nominal | Código del país en cuestión                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | Región           | Nominal | Región del mundo en la que se encuentra el país                                                                                                                                                                                                                                                                                                                                                                                                                                           |
@@ -90,7 +87,7 @@ Utilizamos un método de muestreo aleatorio por regiones en el estudio "Life exp
 ### Variables Cualitativas:
 
 | Variable                                        | Escala | Descripción                                                                                                                                                                                                                                                                                                                                                                                                  |
-|-----------------|-----------------|---------------------------------------|
+|---------------|---------------|------------------------------------------|
 | Prevalencia de la Subnutrición                  | Razón  | La prevalencia de la subnutrición se refiere al porcentaje de la población cuyo consumo habitual de alimentos es insuficiente para mantener una vida normalmente activa y saludable.                                                                                                                                                                                                                         |
 | Emisiones de Dióxido de Carbono (Kilotoneladas) | Razón  | Las emisiones de dióxido de carbono provienen de la quema de combustibles fósiles y la producción de cemento, incluyendo el dióxido de carbono generado por la utilización de combustibles sólidos, líquidos y gaseosos, así como la quema de gas.                                                                                                                                                           |
 | Gasto Sanitario (% del PIB)                     | Razón  | Nivel de gasto sanitario corriente expresado en porcentaje del PIB, incluyendo los bienes y servicios sanitarios consumidos anualmente. Este indicador excluye los gastos sanitarios de capital, como edificios, maquinaria, tecnología de la información y reservas de vacunas para emergencias o brotes.                                                                                                   |
@@ -158,6 +155,73 @@ if (valores_modificados <= 0.10 * length(unlist(df))) {
 }
 
 
+
+
+
+# Función para calcular el número de clases usando la fórmula de Sturges
+num_clases <- function(n) {
+  return(1 + 3.3 * log10(n))
+}
+
+# Función para generar histograma
+generar_histograma <- function(df, variable, variable_nombre, variable_texto) {
+  num_clases_variable <- num_clases(length(df[[variable]]))
+  histograma_variable <- hist(df[[variable]], 
+                              breaks = num_clases_variable,
+                              right = TRUE,
+                              plot = FALSE)
+  
+  porcentajes <- (histograma_variable$counts / sum(histograma_variable$counts)) * 100
+  
+  # Redondear los límites de los intervalos a dos decimales
+  etiquetas_intervalos <- paste(format(round(histograma_variable$breaks[-length(histograma_variable$breaks)], 2), nsmall = 2),
+                                format(round(histograma_variable$breaks[-1], 2), nsmall = 2), sep = " - ")
+  
+  data <- data.frame(etiquetas_intervalos, porcentajes, freq = histograma_variable$counts)
+
+  ggplot(data, aes(x = etiquetas_intervalos, y = porcentajes, fill = factor(freq))) +
+    geom_bar(stat = "identity", position = "identity", width = 1) +
+    geom_text(aes(label = paste0(round(porcentajes, 2), "%")),
+              position = position_identity(),
+              vjust = -0.5,    # Ajusta la posición vertical del texto según sea necesario
+              size = 3) +      # Ajusta el tamaño del texto según sea necesario
+    labs(x = variable_nombre, y = "Porcentaje",
+         title = paste(variable_texto)) +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+}
+
+generar_tabla_frecuencias <- function(df, variable) {
+  num_clases_variable <- num_clases(length(df[[variable]]))
+  histograma_variable <- hist(df[[variable]], 
+                              breaks = num_clases_variable,
+                              right = TRUE,
+                              plot = FALSE)
+  
+  # Calcular las frecuencias
+  frecuencia_absoluta <- histograma_variable$counts
+  frecuencia_relativa <- (frecuencia_absoluta / sum(frecuencia_absoluta)) * 100
+  frecuencia_acumulada <- cumsum(frecuencia_absoluta)
+  frecuencia_relativa_acumulada <- cumsum(frecuencia_relativa)
+  
+  # Redondear los límites de los intervalos a dos decimales
+  etiquetas_intervalos <- paste(format(round(histograma_variable$breaks[-length(histograma_variable$breaks)], 2), nsmall = 2),
+                                format(round(histograma_variable$breaks[-1], 2), nsmall = 2), sep = " - ")
+  
+  # Crear tabla de frecuencias
+  tabla_frecuencias <- data.frame(
+    Intervalo = etiquetas_intervalos,
+    `Frecuencia Absoluta` = frecuencia_absoluta,
+    `Frecuencia Relativa (%)` = frecuencia_relativa,
+    `Frecuencia Acumulada` = frecuencia_acumulada,
+    `Frecuencia Relativa Acumulada (%)` = frecuencia_relativa_acumulada
+  )
+
+  return(tabla_frecuencias)
+}
+
+
+
+
 ```
 
 #### Resumen de variables:
@@ -195,15 +259,13 @@ generar_summary_table <- function(df) {
   summary_table <- do.call(rbind, resumen_por_columna)
   return(summary_table)
 }
-+
-  
 ```
 
 ##### Base de datos original:
 
 ```{r}
 
-print(generar_summary_table(life_expectancy))
+View(generar_summary_table(life_expectancy))
 
 
 ```
@@ -212,11 +274,14 @@ print(generar_summary_table(life_expectancy))
 
 ```{r}
 
-print(generar_summary_table(df))
+View(generar_summary_table(df))
 
 
 
 ```
+
+
+
 
 #### Prevalencia De La Subnutrición
 
@@ -233,6 +298,19 @@ eda(life_expectancy$`Prevelance of Undernourishment`)
 
 ```{r}
 eda(df$`Prevelance of Undernourishment`)
+
+```
+
+##### Tabla de frecuencia
+```{r}
+generar_histograma(df, "Prevelance of Undernourishment", "Desnutrición", "Prevalencia de Desnutrición")
+
+
+```
+
+##### Histograma:
+```{r}
+generar_tabla_frecuencias(df, "Prevelance of Undernourishment")
 
 ```
 
@@ -254,6 +332,20 @@ eda(df$CO2)
 
 ```
 
+##### Tabla de frecuencia
+```{r}
+print(generar_tabla_frecuencias(df, "CO2"))
+
+
+```
+
+##### Histograma:
+```{r}
+generar_histograma(df, "CO2", "CO2", "Emisiones de CO2")
+
+
+```
+
 #### Gasto Sanitario (% del PIB)
 
 El gasto en salud como porcentaje del Producto Interno Bruto (PIB) es un indicador crítico de la inversión en atención médica. En la base de datos original, esta variable tiene una media de 6.709901, una mediana de 6.271637 y una desviación estándar de 3.00924. Después de la limpieza de la base de datos, la media disminuye ligeramente a 6.44909, mientras que la mediana se mantiene en 6.271637 y la desviación estándar disminuye a 2.394581. Esto indica que, en promedio, se invierte aproximadamente un 6.45% del PIB en salud, con una tendencia hacia el 6.27%. La disminución de la desviación estándar sugiere una mayor homogeneidad en los datos. En el contexto de este estudio, se destaca que la inversión en salud se mantiene relativamente constante y está por encima del 6% del PIB.
@@ -269,6 +361,20 @@ eda(life_expectancy$`Health Expenditure %`)
 
 ```{r}
 eda(df$`Health Expenditure %`)
+
+```
+
+##### Tabla de frecuencia
+```{r}
+print(generar_tabla_frecuencias(df, "Health Expenditure %"))
+
+
+```
+
+##### Histograma:
+```{r}
+generar_histograma(df, "Health Expenditure %", "Gasto en Salud", "Porcentaje de Gasto en Salud")
+
 
 ```
 
@@ -290,6 +396,18 @@ eda(df$`Education Expenditure %`)
 
 ```
 
+##### Tabla de frecuencia
+```{r}
+print(generar_tabla_frecuencias(df, "Education Expenditure %"))
+```
+
+##### Histograma:
+```{r}
+generar_histograma(df, "Education Expenditure %", "Gasto en Educación", "Porcentaje de Gasto en Educación")
+
+```
+
+
 #### Desempleo (% de la población activa total)
 
 La tasa de desempleo es un indicador clave para evaluar la situación económica de un país. En la base de datos original, esta variable tiene una media de 6.883121, una mediana de 5.6065 y una desviación estándar de 5.274997. Tras la limpieza de la base de datos, la media disminuye a 5.613848, la mediana disminuye ligeramente a 5.59825, y la desviación estándar disminuye significativamente a 3.097995. Esto indica que, en promedio, la tasa de desempleo es cercana al 5.61%, con una tendencia hacia el 5.60%. La disminución de la desviación estándar sugiere una mayor homogeneidad en los datos.
@@ -308,11 +426,23 @@ eda(df$Unemployment)
 
 ```
 
+##### Tabla de frecuencia
+```{r}
+print(generar_tabla_frecuencias(df, "Unemployment"))
+```
+
+##### Histograma:
+```{r}
+generar_histograma(df, "Unemployment", "Desempleo", "Porcentaje de Desempleo")
+
+```
+
+
 #### Saneamiento
 
 El acceso a instalaciones de saneamiento es esencial para la salud pública y la calidad de vida. En la base de datos original, la variable "Sanitation" muestra una media de 55.1263, una mediana de 49.31748 y una desviación estándar de 23.91998. Tras la limpieza de la base de datos, la media aumenta a 56.92859, la mediana se mantiene en 49.31748,
 
-\##### Base de datos original:
+##### Base de datos original:
 
 ```{r}
 eda(life_expectancy$Sanitation)
@@ -325,6 +455,18 @@ eda(life_expectancy$Sanitation)
 eda(df$Sanitation)
 
 ```
+
+##### Tabla de frecuencia
+```{r}
+print(generar_tabla_frecuencias(df, "Sanitation"))
+```
+
+##### Histograma:
+```{r}
+generar_histograma(df, "Sanitation", "Saneamiento", "Porcentaje de Saneamiento")
+
+```
+
 
 #### Esperanza De Vida
 
@@ -341,6 +483,18 @@ eda(life_expectancy$`Life Expectancy World Bank`)
 
 ```{r}
 eda(df$`Life Expectancy World Bank`)
+
+```
+
+##### Tabla de frecuencia
+```{r}
+print(generar_tabla_frecuencias(df, "Life Expectancy World Bank"))
+```
+
+##### Histograma:
+```{r}
+
+generar_histograma(df, "Life Expectancy World Bank", "Expectativa de Vida", "Expectativa de Vida según el Banco Mundial")
 
 ```
 
@@ -433,7 +587,7 @@ Estos resultados sugieren una correlación positiva entre el nivel de ingresos y
 ##### Corrupción
 
 ```{r}
-cantidad_paises_por_corrupcion <- datos_2019 %>%
+cantidad_paises_por_corrupcion <- life_expectancy %>%
   group_by(Corruption) %>%
   summarise(Cantidad_Paises = n())
 
@@ -457,7 +611,6 @@ Los datos indican que el nivel de corrupción con la mayor cantidad de países e
 Estos resultados destacan una variación significativa en los niveles de corrupción entre los diferentes países del mundo. Específicamente, se observa que hay una mayor cantidad de países en el nivel 3 de corrupción y una menor cantidad en el nivel 4.5.
 
 ### Estimacion muestral y estimacion proporcion:
-
 ```{r}
 # Crear una función para calcular el intervalo de confianza para una región específica
 calcular_intervalo_confianza <- function(data, region) {
@@ -506,7 +659,7 @@ for (region in regiones_unicas) {
 }
 
 # Imprimir la tabla de resultados
-print(tabla_intervalos)
+View(tabla_intervalos)
 
 
 
@@ -515,41 +668,31 @@ print(tabla_intervalos)
 
 ## Proporciones
 
+```{r}
+
+calcular_intervalo_p <- function(data, income_group) {
+  intervalo <- data %>%
+    mutate(Ingresos = as.numeric(IncomeGroup == income_group)) %>%
+    summarise(
+      n = n(),
+      p = mean(Ingresos),
+      error.est.p = sqrt((p * (1 - p)) / n),
+      error.p = 1.96 * error.est.p,
+      lim.inf = p - error.p,
+      lim.sup = p + error.p
+    )
+  
+  print(intervalo)
+}
+
+```
+
+
 ### Proporcion de regiones con bajos ingresos
 
 ```{r}
-Ingresos <- ifelse(life_expectancy$IncomeGroup== "Low income",1,0)
 
-str(Ingresos)
-
-prop.table(table(Ingresos))
-
-Ingresos <- na.omit(Ingresos)
-
-p <- mean(Ingresos)
-
-p
-
-#Identificar el n
-
-n <- length(Ingresos)
-n
-
-#error estandar
-
-error.est.p <- sqrt((p*(1-p))/n)
-
-#cálculo del error
-error.p <- 1.96*error.est.p
-
-#limites
-lim.inf <- p-error.p
-lim.sup <- p+error.p
-
-intervalo.p <- data.frame(n,p,error.est.p,error.p,lim.inf,lim.sup)
-
-intervalo.p 
-
+calcular_intervalo_p(life_expectancy, "Low income")
 
 ```
 
@@ -558,43 +701,14 @@ el código calcula la proporción de países de "ingresos bajos" en un conjunto 
 ### Proporcion de paises en la categoría de altos ingresos
 
 ```{r}
-Ingresos <- ifelse(life_expectancy$IncomeGroup== "High income",1,0)
 
-str(Ingresos)
-
-prop.table(table(Ingresos))
-
-Ingresos <- na.omit(Ingresos)
-
-p <- mean(Ingresos)
-
-p
-
-#Identificar el n
-
-n <- length(Ingresos)
-n
-
-#error estandar
-
-error.est.p <- sqrt((p*(1-p))/n)
-
-#cálculo del error
-error.p <- 1.96*error.est.p
-
-#limites
-lim.inf <- p-error.p
-lim.sup <- p+error.p
-
-intervalo.p <- data.frame(n,p,error.est.p,error.p,lim.inf,lim.sup)
-
-intervalo.p 
+calcular_intervalo_p(life_expectancy, "High income")
 
 ```
 
 el código calcula la proporción de países de "altos ingresos" en un conjunto de datos, junto con un intervalo de confianza del 95% para esta proporción. La proporción estimada es aproximadamente 0.3276, y el intervalo de confianza está entre 0.2578 y 0.3973. Esto significa que con un 95% de confianza, se estima que la proporción de países de "altos ingresos" está dentro de este intervalo.
 
-##Pruebas de hipótesis
+## Pruebas de hipótesis
 
 ```{r}
 curve_area <- function(mean = 0, sd = 1, lb, ub, acolor = "lightgray", ...,z) {
@@ -606,6 +720,7 @@ curve_area <- function(mean = 0, sd = 1, lb, ub, acolor = "lightgray", ...,z) {
   if (missing(ub)) {
     ub <- max(x)
   }
+  ##
   
   x2 <- seq(lb, ub, length = 100)    
   plot(x, dnorm(x, mean, sd), type = "l", ylab = "")
@@ -622,29 +737,48 @@ curve_area <- function(mean = 0, sd = 1, lb, ub, acolor = "lightgray", ...,z) {
 
 ```
 
-###Hipotesis para la media Comprobar que en promedio los paises con bajos ingresos tienen menos de 65 años de esperanza de vida H0:μ\$\ge\$65 H1:μ\<65
+
+# Hipótesis
+
+Según un informe publicado en 2019 por la Organización Mundial de la Salud se estima que la esperanza de vida al nacer en los países de bajos ingresos (63,7 años) es aproximadamente 17,1 años menor que en los países de altos ingresos (80,8 años). Con ello formulamos las siguientes hipótesis:
+
+### Hipotesis para la media Comprobar que en promedio los paises con bajos ingresos tienen menos de 64 años de esperanza de vida 
+
+$H_0:μ \ge 64$ 
+
+$H1:μ < 64$
 
 ```{r}
 grupos <- split(life_expectancy, life_expectancy$IncomeGroup)
 grupo_low_income <- grupos[["Low income"]]
-t.test(grupo_low_income$"Life Expectancy World Bank", mu=65,  alternative = "less")
+t.test(grupo_low_income$"Life Expectancy World Bank", mu=64,  alternative = "less")
 qt (p = 0.95, df = 22, lower.tail = FALSE)
 ```
 
-Si buscamos el valor crítico de t con un α de 0,05 tenemos que tα=-1.717 Al comparar con el t calculado vemos que este es menor al valor crítico, por lo que decimos que se ubica en la zona de rechazo. Es decir, rechazamos H0 Si utilizamos el valor P para comparar y validar el error de tipo I, vemos que el valor p es de 0.0005817, este es menor al \$alpha \$ de 0,05, por lo que rechazamos H0Se concluye que en promedio los paises con bajos ingresos tienen menos de 65 años de esperanza de vida.
+Si buscamos el valor crítico de t con un α de 0,05 tenemos que tα=-2.6022 Al comparar con el t calculado vemos que este es menor al valor crítico, por lo que decimos que se ubica en la zona de rechazo. Es decir, rechazamos H0 Si utilizamos el valor P para comparar y validar el error de tipo I, vemos que el valor p es de 0.008133, este es menor al $\alpha$ de 0,05, por lo que rechazamos H0Se concluye que en promedio los paises con bajos ingresos tienen menos de 64  años de esperanza de vida.
 
-###Hipotesis para la media Comprobar que en promedio los paises con altos ingresos tienen más de 70 años de esperanza de vida H0:μ\$\le\$70 H1:μ\>70
+### Hipotesis para la media Comprobar que en promedio los paises con altos ingresos tienen más de 80 años de esperanza de vida 
+
+$H_0: μ \le 80$ 
+
+$H_1:μ>80$
 
 ```{r}
 grupo_high_income <- grupos[["High income"]]
-t.test(grupo_high_income$"Life Expectancy World Bank", mu=70,  alternative = "greater")
+t.test(grupo_high_income$"Life Expectancy World Bank", mu=77,  alternative = "greater")
 qt (p = 0.95, df = 56, lower.tail = TRUE)
 curve_area(mean = 0, sd = 1, lb = qt (p = 0.95, df = 56, lower.tail = TRUE), lwd = 2, acolor = rgb(0, 0, 1, alpha = 0.5), z=12.77)
 ```
 
-Si buscamos el valor crítico de t con un α de 0,05 tenemos que tα=1.67 Al comparar con el t calculado vemos que este es mayor al valor crítico, por lo que decimos que se ubica en la zona de rechazo. Es decir, rechazamos H0 Si utilizamos el valor P para comparar y validar el error de tipo I, vemos que el valor p es de 2.2e-16, este es menor al \$alpha \$ de 0,05, por lo que rechazamos H0 Se concluye que en promedio los paises con altos ingresos tienen más de 70 años de esperanza de vida
+Si buscamos el valor crítico de t con un α de 0,05 tenemos que tα=2.5426 Al comparar con el t calculado vemos que este es mayor al valor crítico, por lo que decimos que se ubica en la zona de rechazo. Es decir, rechazamos H0 Si utilizamos el valor P para comparar y validar el error de tipo I, vemos que el valor p es de 0.006897, este es menor al $\alpha$ de 0,05, por lo que rechazamos H0 Se concluye que en promedio los paises con altos ingresos tienen más de 77 años de esperanza de vida.
 
-###Hipotesis para la proporción Comprobar que más del 50% de los paises tienen un grado de corrupción 3. H0:π\$\le\$0.5 H1:π\>0.5
+### Hipotesis para la proporción Comprobar que más del 50% de los paises tienen un grado de corrupción 3.
+
+De acuerdo a datos del banco mundial, la calificación de transparencia, responsabilidad y corrupción en el sector público de la CPIA es en promedio 2.9. Por lo tanto formulamos la hipótesis proporción Comprobar que más del 50% de los paises tienen un grado de corrupción 3.
+
+$H_0:π \le 0.5$ 
+
+$H_1: π > 0.5$
 
 ```{r}
 conteoX <- sum(life_expectancy$Corruption == "3")
@@ -656,3 +790,226 @@ curve_area(mean = 0, sd = 1, lb = qnorm(0.95), lwd = 2, acolor = rgb(0, 0, 1, al
 ```
 
 Al comparar con el valor p vemos se debe rechazar H0, ya que p es menor al valor de alpha. Al rechazar la hipótesis nula concluimos que más del 50% de de los paises tienen un grado de corrupción 3.
+
+## Anova 
+
+Dado que la variable principal de estudio en nuestro proyecto es la esperanza de vida, estamos llevando a cabo un análisis de las medias de esperanza de vida por región. Este análisis tiene como objetivo determinar similitudes o diferencias significativas entre las medias de esperanza de vida en distintas regiones, teniendo en cuenta factores culturales y económicos específicos de cada región. A continuación, se presentan las medias de esperanza de vida obtenidas:
+
+
+```{r}
+result <- aggregate(life_expectancy$`Life Expectancy World Bank`, by = list(life_expectancy$Region), FUN = mean)
+
+colnames(result) <- c("Region", "Media_EsperanzaVidas")
+
+
+print(result)
+```
+
+A partir del resultado anterior, se observa una similitud entre las regiones "Middle East & North Africa", "East Asia & Pacific" y "Europe & Central Asia". Por lo tanto, el análisis de ANOVA se lleva a cabo específicamente en estas regiones con el objetivo de determinar si las medias de esperanza de vida son iguales o si al menos una difiere. En este contexto, se plantean las siguientes hipótesis:
+
+Sea $\mu_i$ las media de una región se plantea, 
+
+
+$$ H_0 = \mu_1 = \mu_2= \mu_3 \\
+
+ H_1 = \text{Al menos un par de medias difieren.}$$
+Se procede a hacer Anova: 
+
+
+```{r}
+# Proceso de ANOVA
+
+filtradoDeZonas <- life_expectancy %>%
+  filter(life_expectancy$Region %in% c("Middle East & North Africa", "East Asia & Pacific", "Europe & Central Asia"))
+
+print(filtradoDeZonas)
+
+modelo_anova <- aov(lm(`Life Expectancy World Bank` ~ Region, data = filtradoDeZonas))
+
+resumen_anova <- summary(modelo_anova)
+
+print(resumen_anova)
+
+
+```
+
+Con base en los resultados obtenidos, se rechaza la hipótesis nula $H_0$. Por consiguiente, se lleva a cabo un análisis post-ANOVA con el propósito de comprender e identificar la naturaleza de esta diferencia.
+
+```{r}
+resumenTukey <- TukeyHSD(modelo_anova)
+
+
+postAnova <- summary(resumenTukey)
+
+#postAnova_formateado <- kable(as.data.frame(postAnova))
+
+
+print(as.data.frame(resumenTukey$Region))
+
+```
+
+Dado el post-anova, podemos asegurar que existe una diferencia significativa de las medias entre 'Europe & Central Asia' y 'East Asia & Pacific',  y entre 'Middle East & North Africa'  y 'East Asia & Pacific'.
+
+## Prueba de independencia entre dos variables categóricas
+
+Hipótesis nula (Ho): Los países se encuentran distribuidos de manera equitativa entre las categorías de ingresos.
+
+Hipótesis alternativa (H1): Los países NO se encuentran distribuidos de manera equitativa entre las categorías de ingresos.
+
+### Categorias de ingresos
+
+High income=1
+Upper middle income=2
+Lower middle income=3
+Low income=4
+
+```{r}
+tabla_contingencia <- matrix(c(1, 57, 2, 49, 3, 45, 4, 23), nrow = 4, byrow = TRUE)
+
+# Etiquetar las filas y columnas
+colnames(tabla_contingencia) <- c("Cat_ingresos","Paises")
+
+# Realizar el test de chi-cuadrado con simulación de Monte Carlo
+resultado_chi_cuadrado <- chisq.test(tabla_contingencia)
+
+# Imprimir los resultados
+print(resultado_chi_cuadrado)
+```
+
+Dado que 0.09103>0.05 no hay evidencia suficiente para rechazar
+la hipótesis nula a un nivel de significancia del 5%. Por lo tanto,
+no hay suficiente evidencia para decir que los países no se distribuyen de
+manera equitativa entre las categorías de ingresos.
+
+
+## Regresión Lineal
+
+```{r}
+df <- df %>%
+  mutate(Grupo = case_when(
+    Region %in% c("Europe & Central Asia", "East Asia & Pacific", "Middle East & North África") ~ "Alto Ingreso",
+    Region == "Sub-Saharan Africa" ~ "Bajo Ingreso",
+    TRUE ~ "Otro" 
+  ))
+subgrupos <- split(df, df$Grupo)
+datos_alto_ingreso <- subgrupos[["Alto Ingreso"]]
+plot(datos_alto_ingreso$`Health Expenditure %`, datos_alto_ingreso$`Life Expectancy World Bank`)
+cor.test(datos_alto_ingreso$`Life Expectancy World Bank`, datos_alto_ingreso$`Health Expenditure %`)
+```
+
+### **Prueba de correlación**
+
+$H_0: ρ = 0$
+
+$H_1: ρ \neq 0$
+
+
+- **Coeficiente de correlación de Pearson (cor):** El valor del coeficiente de correlación de Pearson es 0.5610439. Este valor indica la fuerza y la dirección de la relación lineal entre las dos variables. En este caso, un valor de 0.5610439 sugiere una correlación positiva moderada entre las dos variables; a medida que una variable aumenta, la otra tiende a aumentar también.
+
+- **Valor p (p-value):** El valor p asociado a la prueba de correlación es $1.999 \times 10^{-7}$, que es extremadamente bajo. Esto sugiere que la correlación observada es estadísticamente significativa, es decir, es poco probable que la correlación sea el resultado del azar.
+
+- **Intervalo de confianza del 95% para la correlación:** El intervalo de confianza del 95% para la correlación va desde 0.3814457 a 0.6998264. Esto significa que podemos estar 95% seguros de que el verdadero valor de la correlación entre estas dos variables cae dentro de este intervalo.
+
+- **Hipótesis alternativa:** La hipótesis alternativa indica que la verdadera correlación no es igual a cero. Dado que el valor p es muy bajo, se rechaza la hipótesis nula de que la correlación es cero.
+
+En resumen, hay una correlación positiva significativa entre "Life Expectancy World Bank" y "Health Expenditure %", y esta relación es moderada, según el coeficiente de correlación de Pearson.
+
+###**Modelo de regresión lineal**
+
+```{r}
+Regresion <- lm(datos_alto_ingreso$`Life Expectancy World Bank` ~ datos_alto_ingreso$`Health Expenditure %` , data = datos_alto_ingreso)
+summary(Regresion)
+```
+
+En la regresión lineal modelada, la ecuación del modelo es:
+
+$$ \text{Life Expectancy World Bank} = 65.5079 + 1.4142 \times \text{Health Expenditure %} $$
+
+Donde:
+- El intercepto ($ \beta_0 $) es 65.5079.
+- La pendiente ($ \beta_1 $) es 1.4142.
+
+Interpretación:
+- **Intercepto (65.5079):** En el contexto del modelo, este valor representa el valor predicho de "Life Expectancy World Bank" cuando se desprecia el efecto de la variable explicativa "Health Expenditure %" o se mantiene constante. 
+
+- **Pendiente (1.4142):** Indica el cambio promedio en la variable de respuesta ("Life Expectancy World Bank") por cada unidad de cambio en la variable explicativa ("Health Expenditure %"). En este caso, un aumento de una unidad en "Health Expenditure %", % of PIB, se asocia, en promedio, con un aumento de 1.4142 unidades en "Life Expectancy World Bank", la cual se mide en años. La dirección de la relación (positiva o negativa) depende del signo de la pendiente, y en este caso, como el coeficiente es positivo, hay una relación positiva entre las dos variables: a medida que aumenta el gasto en salud, se espera que la expectativa de vida también aumente.
+
+Los valores de p asociados con cada coeficiente indican la significancia estadística de cada coeficiente. En este caso, ambos coeficientes tienen valores de p muy bajos ($< 0.05$), lo que sugiere que tanto el intercepto como la pendiente son estadísticamente significativos.
+
+
+###**Test de Breusch-Pagan**
+
+
+
+```{r}
+bptest(Regresion)
+```
+
+
+
+- **Breusch-Pagan test (BP):** En este caso, el estadístico de prueba (BP) es 0.018403.
+
+- **Grados de libertad (df):** El número de grados de libertad asociados con el estadístico de prueba es 1.
+
+- **Valor p (p-value):** El valor p asociado al test de Breusch-Pagan es 0.8921.
+
+**Interpretación:**
+El test de Breusch-Pagan se utiliza para evaluar la presencia de heterocedasticidad en los residuos de un modelo de regresión. 
+
+$H_0:$ La varianza de los errores es constante (homocedasticidad).
+
+$H_1:$ La hipótesis alternativa es que la varianza de los errores no es constante (heterocedasticidad).
+
+En este caso, dado que el valor p es alto (0.8921), no hay evidencia suficiente para rechazar la hipótesis nula de homocedasticidad. En otras palabras, no se encuentra evidencia estadística significativa de que la varianza de los errores sea diferente a lo largo de los niveles de la variable explicativa "Health Expenditure %".
+
+Por lo tanto, en términos prácticos, el resultado sugiere que el modelo de regresión no está mostrando signos significativos de heterocedasticidad según el test de Breusch-Pagan.
+
+###**Test de normalidad de Shapiro-Wilk**
+
+
+```{r}
+Residuos<-residuals(Regresion)
+shapiro.test(Residuos)
+```
+
+
+- **Estadístico de prueba (W):** En este caso, el estadístico de prueba de Shapiro-Wilk (W) es 0.9586.
+
+- **Valor p (p-value):** El valor p asociado al test de Shapiro-Wilk es 0.0162.
+
+**Interpretación:**
+El test de Shapiro-Wilk se utiliza para evaluar si los datos (en este caso, los residuos del modelo de regresión) siguen una distribución normal. 
+
+$H_0:$ Los residuos siguen una distribución normal.
+$H_1:$ Los residuos no siguen una distribución normal.
+
+En este caso, el valor p es $0.0162$, que es menor que el nivel de significancia típicamente utilizado (como $0.05$). Por lo tanto, hay evidencia suficiente para rechazar la hipótesis nula de normalidad. Esto sugiere que los residuos no siguen una distribución normal.
+
+
+## Conclusiones
+1. **Correlación entre Niveles de Ingresos y Expectativa de Vida por Regiones:**
+   - **Resultado:** Se observa una correlación positiva entre los niveles de ingresos y la expectativa de vida. Las regiones con ingresos más altos tienden a tener una mayor expectativa de vida.
+   - **Conclusiones Específicas:**
+     - En las regiones de Europa y Asia Central, así como en Asia del Este y el Pacífico, se evidencia una correlación significativa entre altos ingresos y expectativa de vida. 
+     - La región de África Subsahariana presenta una correlación negativa, indicando que, en promedio, la expectativa de vida es más baja en países con ingresos más bajos.
+
+2. **Relación entre Gasto en Salud (% del PIB) y Niveles de Ingresos:**
+   - **Resultado:** El gasto en salud como porcentaje del PIB se mantiene relativamente constante en alrededor del 6% para todas las regiones.
+   - **Conclusiones Específicas:**
+     - A pesar de variaciones en los niveles de ingresos, la inversión en salud se mantiene constante. Se sugiere una necesidad de análisis más detallado para comprender la eficacia de esta inversión en términos de resultados de salud.
+
+3. **Factores Socioeconómicos que Afectan la Esperanza de Vida:**
+   - **Resultado:** Se identifican correlaciones significativas entre la esperanza de vida y variables como la desnutrición, emisiones de CO2 y acceso a saneamiento.
+   - **Conclusiones Específicas:**
+     - Reducir la desnutrición y mejorar el acceso a instalaciones de saneamiento son áreas clave para mejorar la salud pública y aumentar la esperanza de vida.
+
+4. **Conexiones entre Políticas de Gestión Ambiental, Emisiones de CO2 y Niveles de Ingresos:**
+   - **Resultado:** Las emisiones de CO2 muestran una disminución significativa después de la limpieza de datos, indicando posibles esfuerzos de gestión ambiental.
+   - **Conclusiones Específicas:**
+     - Países con ingresos altos podrían estar implementando políticas ambientales más efectivas, lo que lleva a una reducción en las emisiones de CO2.
+
+5. **Análisis de Regresión entre Gasto en Salud y Expectativa de Vida en Regiones de Altos Ingresos:**
+   - **Resultado:** Se encuentra una relación positiva significativa entre el gasto en salud y la expectativa de vida.
+   - **Conclusiones Específicas:**
+     - Aumentar la inversión en salud en regiones de altos ingresos puede contribuir positivamente a una mayor expectativa de vida.
+
